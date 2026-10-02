@@ -13,6 +13,7 @@ from app.schemas.dashboard import (
     RecommendationSummaryResponse,
     LatestScanResponse
 )
+from app.schemas.analytics import HealthScoreResponse, CostForecastResponse
 from app.services import dashboard_service
 from app.auth.dependencies import get_db, get_current_user
 from app.models.user import User
@@ -123,3 +124,29 @@ def get_latest_scan(
     """
     latest_scan = dashboard_service.get_latest_scan_summary(db, user=current_user, account_id=account_id)
     return latest_scan
+
+@router.get("/health", response_model=HealthScoreResponse)
+def get_dashboard_health(
+    account_id: Optional[UUID] = Query(None, alias="account_id", description="Target cloud account UUID"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Dashboard Health Endpoint:
+    Calculates cloud health score (0-100) and updates persisted health score in PostgreSQL.
+    """
+    from app.services import health_service
+    return health_service.calculate_cloud_health_score(db, user=current_user, account_id=account_id)
+
+@router.get("/cost-forecast", response_model=CostForecastResponse)
+def get_dashboard_cost_forecast(
+    account_id: Optional[UUID] = Query(None, alias="account_id", description="Target cloud account UUID"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Dashboard Cost Forecast Endpoint:
+    Uses Scikit-learn Machine Learning (LinearRegression) to predict future monthly spend trends.
+    """
+    from app.services import forecast_service
+    return forecast_service.generate_cost_forecast(db, user=current_user, account_id=account_id)

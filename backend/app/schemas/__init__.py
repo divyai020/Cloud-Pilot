@@ -17,6 +17,13 @@ from app.schemas.report import (
     PDFReportResponse,
     CSVReportResponse
 )
+from app.schemas.analytics import (
+    HealthScoreFactors,
+    HealthScoreResponse,
+    CostForecastResponse,
+    HistoricalCostPoint,
+    ForecastPoint
+)
 
 __all__ = [
     "UserCreate",
@@ -41,4 +48,9 @@ __all__ = [
     "RecommendationResponse",
     "PDFReportResponse",
     "CSVReportResponse",
+    "HealthScoreFactors",
+    "HealthScoreResponse",
+    "CostForecastResponse",
+    "HistoricalCostPoint",
+    "ForecastPoint",
 ]

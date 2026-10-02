@@ -18,9 +18,11 @@ def get_boto3_client(service_name: str, credentials: Dict[str, Any], region: str
 
 def discover_ec2(credentials: Dict[str, Any], region: str) -> List[Dict[str, Any]]:
     """
-    Read-only discovery of EC2 instances.
-    Boto3 call: ec2.describe_instances()
+    Read-only discovery of EC2 instances and scan-time retrieval of CloudWatch CPUUtilization.
+    Boto3 calls: ec2.describe_instances() & cloudwatch.get_metric_statistics()
     """
+    from app.aws.cloudwatch_collector import get_ec2_cpu_utilization
+
     resources = []
     try:
         ec2_client = get_boto3_client("ec2", credentials, region)
@@ -40,6 +42,9 @@ def discover_ec2(credentials: Dict[str, Any], region: str) -> List[Dict[str, Any
                             name = tag.get("Value")
                             break
 
+                    # Retrieve CloudWatch CPU metric (returns float or None if missing/unavailable)
+                    cpu_metric = get_ec2_cpu_utilization(credentials, region, instance_id)
+
                     resources.append({
                         "id": instance_id,
                         "name": name,
@@ -50,7 +55,7 @@ def discover_ec2(credentials: Dict[str, Any], region: str) -> List[Dict[str, Any
                         "monthly_cost": 2800.0,  # Estimated baseline cost
                         "risk": "Low",
                         "public_access": bool(inst.get("PublicIpAddress")),
-                        "cpu_utilization": 45.0
+                        "cpu_utilization": cpu_metric
                     })
     except Exception as e:
         logger.error(f"Error during EC2 discovery: {str(e)}")
@@ -124,7 +129,7 @@ def discover_rds(credentials: Dict[str, Any], region: str) -> List[Dict[str, Any
                     "risk": "Medium" if not is_encrypted else "Low",
                     "public_access": db_inst.get("PubliclyAccessible", False),
                     "storage_gb": float(storage_gb),
-                    "cpu_utilization": 35.0
+                    "cpu_utilization": None
                 })
     except Exception as e:
         logger.error(f"Error during RDS discovery: {str(e)}")

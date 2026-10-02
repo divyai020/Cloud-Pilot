@@ -2,7 +2,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import check_db_connection
-from app.routers import auth_router, users_router, cloud_router, scan_router, dashboard_router, reports_router
+from app.routers import (
+    auth_router,
+    users_router,
+    cloud_router,
+    scan_router,
+    dashboard_router,
+    reports_router,
+    analytics_router
+)
 
 # Initialize FastAPI Application
 app = FastAPI(
@@ -28,6 +36,7 @@ app.include_router(cloud_router, prefix="/api/v1")
 app.include_router(scan_router, prefix="/api/v1")
 app.include_router(dashboard_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
+app.include_router(analytics_router, prefix="/api/v1")
 
 @app.get("/")
 def read_root():

@@ -66,19 +66,23 @@ ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 uvicorn app.main:app --reload
 ```
 
+
 ---
 
-## Verification & Testing
+## Phase 10 — AWS CloudWatch CPU Utilization Integration
 
-1. Open Interactive API Documentation:
-   `http://localhost:8000/docs`
+Phase 10 replaces hardcoded EC2 CPU utilization placeholders with scan-time AWS CloudWatch metric retrieval.
 
-2. Test Root Endpoint (`GET /`):
-   - Browser URL: `http://localhost:8000/`
-   - Expected Response when PostgreSQL is connected:
-     ```json
-     {
-       "message": "Cloud Pilot API is running",
-       "database": "connected"
-     }
-     ```
+### CloudWatch Architecture:
+- **Metric Requested**: `AWS/EC2` $\rightarrow$ `CPUUtilization` (Dimension: `InstanceId`).
+- **Aggregation Window**: 14-day historical daily average (`Period=86400`, `Statistics=['Average']`).
+- **Scan-Time Retrieval**: Metrics are requested dynamically during AWS resource discovery via Boto3 and stored in PostgreSQL (`Resource.cpu_utilization`). This is **scan-time retrieval**, NOT continuous real-time streaming.
+- **Missing Metric Behavior**: If CloudWatch returns empty datapoints or access is denied, `cpu_utilization` is safely set to `None` (SQL `NULL`).
+- **Required AWS IAM Permissions**:
+  - `ec2:DescribeInstances`
+  - `s3:ListAllMyBuckets`, `s3:GetBucketPublicAccessBlock`
+  - `rds:DescribeDBInstances`
+  - `lambda:ListFunctions`
+  - `iam:ListUsers`
+  - `cloudwatch:GetMetricStatistics`
+
