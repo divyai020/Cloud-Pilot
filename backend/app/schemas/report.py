@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 class RecommendationResponse(BaseModel):
@@ -37,6 +38,32 @@ class CSVReportResponse(BaseModel):
     filename: str
     contentType: str = "text/csv"
     rowCount: int
+
+    model_config = ConfigDict(
+        populate_by_name=True
+    )
+
+class RoadmapPhaseResponse(BaseModel):
+    """
+    Schema representing a single implementation phase in the optimization roadmap.
+    """
+    phaseName: str = Field(..., alias="phase_name", serialization_alias="phaseName")
+    timeframe: str = Field(...)
+    actionCount: int = Field(..., alias="action_count", serialization_alias="actionCount")
+    potentialSavings: float = Field(..., alias="potential_savings", serialization_alias="potentialSavings")
+    recommendations: List[RecommendationResponse] = Field(default_factory=list)
+
+    model_config = ConfigDict(
+        populate_by_name=True
+    )
+
+class OptimizationRoadmapResponse(BaseModel):
+    """
+    Schema for the phased Cloud Optimization Roadmap endpoint.
+    """
+    totalPotentialSavings: float = Field(..., alias="total_potential_savings", serialization_alias="totalPotentialSavings")
+    totalActions: int = Field(..., alias="total_actions", serialization_alias="totalActions")
+    phases: List[RoadmapPhaseResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(
         populate_by_name=True

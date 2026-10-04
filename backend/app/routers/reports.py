@@ -3,7 +3,7 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.schemas.report import RecommendationResponse
+from app.schemas.report import RecommendationResponse, OptimizationRoadmapResponse
 from app.services import ai_service, report_service
 from app.auth.dependencies import get_db, get_current_user
 from app.models.user import User
@@ -65,3 +65,19 @@ def get_ai_recommendations(
     """
     recommendations = ai_service.generate_ai_recommendations(db, user=current_user, account_id=account_id)
     return recommendations
+
+@router.get("/roadmap", response_model=OptimizationRoadmapResponse)
+def get_optimization_roadmap(
+    account_id: Optional[UUID] = Query(None, alias="account_id", description="Target cloud account UUID"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Phased Optimization Roadmap Endpoint (Phase 12):
+    Groups optimization recommendations into 3 phased execution stages:
+    - Phase 1: Immediate Action (Days 1-30)
+    - Phase 2: Medium-Term Optimization (Days 31-90)
+    - Phase 3: Long-Term Governance (Days 90+)
+    """
+    roadmap = ai_service.generate_optimization_roadmap(db, user=current_user, account_id=account_id)
+    return roadmap
