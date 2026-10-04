@@ -24,6 +24,14 @@ from app.schemas.analytics import (
     HistoricalCostPoint,
     ForecastPoint
 )
+from app.schemas.assistant import (
+    AssistantAskRequest,
+    AssistantAskResponse
+)
+from app.schemas.simulator import (
+    CostSimulationRequest,
+    CostSimulationResponse
+)
 
 __all__ = [
     "UserCreate",
@@ -53,4 +61,8 @@ __all__ = [
     "CostForecastResponse",
     "HistoricalCostPoint",
     "ForecastPoint",
+    "AssistantAskRequest",
+    "AssistantAskResponse",
+    "CostSimulationRequest",
+    "CostSimulationResponse",
 ]

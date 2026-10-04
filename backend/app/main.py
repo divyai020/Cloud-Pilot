@@ -9,7 +9,9 @@ from app.routers import (
     scan_router,
     dashboard_router,
     reports_router,
-    analytics_router
+    analytics_router,
+    assistant_router,
+    simulator_router
 )
 
 # Initialize FastAPI Application
@@ -37,6 +39,8 @@ app.include_router(scan_router, prefix="/api/v1")
 app.include_router(dashboard_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
+app.include_router(assistant_router, prefix="/api/v1")
+app.include_router(simulator_router, prefix="/api/v1")
 
 @app.get("/")
 def read_root():

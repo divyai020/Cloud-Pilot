@@ -13,6 +13,12 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 60
 
+    # LLM Service Settings (Phase 11C)
+    LLM_PROVIDER: str = "openai"  # 'openai', 'gemini', 'mock'
+    LLM_MODEL: str = "gpt-3.5-turbo"
+    LLM_API_KEY: str = ""
+    LLM_TIMEOUT: int = 10
+
     @property
     def cors_origins(self) -> list[str]:
         """

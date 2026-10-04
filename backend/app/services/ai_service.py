@@ -158,3 +158,52 @@ def generate_ai_recommendations(db: Session, user: User, account_id: UUID | None
             })
 
     return recommendations
+
+
+def generate_optimization_roadmap(db: Session, user: User, account_id: UUID | None = None) -> Dict[str, Any]:
+    """
+    Generates a phased optimization roadmap by grouping AI/rule-based recommendations into implementation stages.
+    - Phase 1 (Immediate Action): High & Critical priority items (Days 1-30)
+    - Phase 2 (Medium-Term Optimization): Medium priority items (Days 31-90)
+    - Phase 3 (Long-Term Governance): Low priority & long-term maintenance items (Days 90+)
+    """
+    recs = generate_ai_recommendations(db, user, account_id)
+
+    phase1_recs = [r for r in recs if r.get("priority") in ["High", "Critical"]]
+    phase2_recs = [r for r in recs if r.get("priority") == "Medium"]
+    phase3_recs = [r for r in recs if r.get("priority") not in ["High", "Critical", "Medium"]]
+
+    p1_savings = sum(r["estimated_savings"] for r in phase1_recs)
+    p2_savings = sum(r["estimated_savings"] for r in phase2_recs)
+    p3_savings = sum(r["estimated_savings"] for r in phase3_recs)
+
+    total_savings = round(p1_savings + p2_savings + p3_savings, 2)
+    total_actions = len(recs)
+
+    return {
+        "total_potential_savings": total_savings,
+        "total_actions": total_actions,
+        "phases": [
+            {
+                "phase_name": "Phase 1: Immediate Action (Days 1-30)",
+                "timeframe": "Days 1-30",
+                "action_count": len(phase1_recs),
+                "potential_savings": round(p1_savings, 2),
+                "recommendations": phase1_recs
+            },
+            {
+                "phase_name": "Phase 2: Medium-Term Optimization (Days 31-90)",
+                "timeframe": "Days 31-90",
+                "action_count": len(phase2_recs),
+                "potential_savings": round(p2_savings, 2),
+                "recommendations": phase2_recs
+            },
+            {
+                "phase_name": "Phase 3: Long-Term Governance (Days 90+)",
+                "timeframe": "Days 90+",
+                "action_count": len(phase3_recs),
+                "potential_savings": round(p3_savings, 2),
+                "recommendations": phase3_recs
+            }
+        ]
+    }
