@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Circle, Loader2, CheckCircle, ArrowRight } from 'lucide-react';
-import demoData from '../data/demoData';
+import { CheckCircle2, Circle, Loader2, CheckCircle, ArrowRight, FileJson, Sparkles } from 'lucide-react';
+import demoData, { getCloudDataSourceInfo } from '../data/demoData';
 import logo from '../assets/images/logo.png';
 
 const Scanning = () => {
@@ -10,7 +10,14 @@ const Scanning = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
 
-  const steps = [
+  const sourceInfo = getCloudDataSourceInfo();
+
+  const steps = sourceInfo.isUploaded ? [
+    `Parsing infrastructure resources from "${sourceInfo.fileName}"`,
+    `Computing multi-service cost attribution & spend trends`,
+    `Evaluating security rules against AWS CIS benchmarks`,
+    `Synthesizing cost optimization & right-sizing opportunities`
+  ] : [
     "Discovering cloud resources (EC2, S3, RDS, Lambda, IAM)",
     "Analyzing resource utilization",
     "Analyzing cloud costs",
@@ -31,10 +38,10 @@ const Scanning = () => {
         if (nextProgress === 100) setCurrentStep(4);
 
         setProgress(nextProgress);
-      }, 60);
+      }, 50);
       return () => clearTimeout(timer);
     } else {
-      const timer = setTimeout(() => setIsComplete(true), 600);
+      const timer = setTimeout(() => setIsComplete(true), 500);
       return () => clearTimeout(timer);
     }
   }, [progress, currentStep]);
@@ -52,7 +59,11 @@ const Scanning = () => {
             <img src={logo} alt="Cloud Pilot" className="scanning-logo" />
           </div>
           <h1 className="scanning-title">Analysis Complete</h1>
-          <p className="scanning-subtitle">Your cloud environment has been successfully mapped.</p>
+          <p className="scanning-subtitle">
+            {sourceInfo.isUploaded 
+              ? `Report "${sourceInfo.fileName}" has been successfully parsed and mapped.` 
+              : "Your cloud environment has been successfully mapped."}
+          </p>
         </div>
 
         <div className="summary-card">
@@ -61,7 +72,15 @@ const Scanning = () => {
               <CheckCircle size={32} color="#10b981" />
             </div>
           </div>
-          <h2 className="summary-title text-center mb-6">Analysis Complete</h2>
+          
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+            <span className={`env-indicator-pill ${sourceInfo.isUploaded ? '' : 'demo'}`}>
+              <span className="env-indicator-dot"></span>
+              {sourceInfo.isUploaded ? `Uploaded Report: ${sourceInfo.fileName}` : 'Preloaded AWS Demo'}
+            </span>
+          </div>
+
+          <h2 className="summary-title text-center mb-6">Cloud Scan Verified</h2>
           
           <div className="summary-list">
             <div className="summary-list-item">
@@ -75,6 +94,12 @@ const Scanning = () => {
             <div className="summary-list-item">
               <span>Security findings</span>
               <span className="summary-value highlight-red">{demoData.securityFindings.length}</span>
+            </div>
+            <div className="summary-list-item">
+              <span>Estimated monthly cost</span>
+              <span className="summary-value" style={{ color: '#38bdf8' }}>
+                ₹{demoData.summary.monthlyCost.toLocaleString('en-IN')}
+              </span>
             </div>
           </div>
 
@@ -114,8 +139,14 @@ const Scanning = () => {
         <div className="scanning-logo-wrapper">
           <img src={logo} alt="Cloud Pilot" className="scanning-logo" />
         </div>
-        <h1 className="scanning-title">Analyzing Your Cloud</h1>
-        <p className="scanning-subtitle">Cloud Pilot is discovering resources and generating insights.</p>
+        <h1 className="scanning-title">
+          {sourceInfo.isUploaded ? 'Analyzing Uploaded Infrastructure' : 'Analyzing Your Cloud'}
+        </h1>
+        <p className="scanning-subtitle">
+          {sourceInfo.isUploaded 
+            ? `Ingesting cloud report "${sourceInfo.fileName}" and evaluating telemetry...` 
+            : "Cloud Pilot is discovering resources and generating insights."}
+        </p>
       </div>
 
       <div className="progress-section">
@@ -152,7 +183,9 @@ const Scanning = () => {
       </div>
 
       <div className="checklist-section">
-        <h3 className="checklist-title">ANALYSIS PROGRESS</h3>
+        <h3 className="checklist-title">
+          {sourceInfo.isUploaded ? `PIPELINE PROGRESS (${sourceInfo.fileName})` : 'ANALYSIS PROGRESS'}
+        </h3>
         <div className="checklist-card">
           {steps.map((step, index) => {
             const isCompleted = currentStep > index;

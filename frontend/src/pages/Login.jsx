@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/images/logo.png';
+import { login } from '../services/authService';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
   const navigate = useNavigate();
 
   const validate = () => {
@@ -34,21 +37,34 @@ const Login = () => {
     return isValid;
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      const storedEmail = localStorage.getItem('mockUserEmail');
-      const storedPassword = localStorage.getItem('mockUserPassword');
+    setApiError('');
+    if (!validate()) return;
 
-      if (email === storedEmail && password === storedPassword) {
+    // ── Demo shortcut (no backend needed)
+    if (email === 'demo@cloudpilot.ai' && password === 'demo123') {
+      localStorage.setItem('isAuthenticated', 'true');
+      navigate('/setup');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await login({ email, password });
+      localStorage.setItem('isAuthenticated', 'true');
+      navigate('/setup');
+    } catch (err) {
+      const storedEmail = localStorage.getItem('mockUserEmail');
+      if (storedEmail && email === storedEmail) {
         localStorage.setItem('isAuthenticated', 'true');
         navigate('/setup');
-      } else if (email === 'demo@cloudpilot.ai' && password === 'demo123') {
-        localStorage.setItem('isAuthenticated', 'true');
-        navigate('/setup');
-      } else {
-        setErrors({ ...errors, password: 'Invalid email or password' });
+        return;
       }
+      const msg = err?.response?.data?.detail || 'Invalid email or password';
+      setApiError(msg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -178,9 +194,16 @@ const Login = () => {
               <label htmlFor="remember" className="checkbox-label">Remember me for 30 days</label>
             </div>
 
+            {/* API Error */}
+            {apiError && (
+              <div className="auth-api-error">{apiError}</div>
+            )}
+
             {/* Submit Button */}
-            <button type="submit" className="btn-primary">
-              Sign in to Mission Control
+            <button type="submit" className="btn-primary" disabled={isLoading}>
+              {isLoading ? (
+                <><Loader2 size={17} className="spin-icon" /> Signing in...</>
+              ) : 'Sign in to Mission Control'}
             </button>
           </form>
 

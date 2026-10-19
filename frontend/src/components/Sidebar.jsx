@@ -9,25 +9,24 @@ import {
   Sliders, 
   Network, 
   Sparkles, 
-  Activity, 
   Map, 
   Settings, 
   UserCircle 
 } from 'lucide-react';
 import logo from '../assets/images/logo.png';
+import ThemeToggle from './ThemeToggle';
 
 const Sidebar = () => {
   const mainLinks = [
-    { name: 'Dashboard', icon: <LayoutDashboard size={18} />, path: '/dashboard' },
-    { name: 'Resources', icon: <Server size={18} />, path: '/resources' },
-    { name: 'Cost Optimization', icon: <PiggyBank size={18} />, path: '/cost' },
-    { name: 'Security', icon: <Shield size={18} />, path: '/security' },
-    { name: 'Forecast', icon: <LineChart size={18} />, path: '/forecast' },
-    { name: 'Simulator', icon: <Sliders size={18} />, path: '/simulator' },
-    { name: 'Resource Map', icon: <Network size={18} />, path: '/map' },
-    { name: 'AI Assistant', icon: <Sparkles size={18} />, path: '/assistant' },
-    { name: 'Activity', icon: <Activity size={18} />, path: '/activity' },
-    { name: 'Roadmap', icon: <Map size={18} />, path: '/roadmap' },
+    { name: 'Dashboard',        icon: <LayoutDashboard size={18} />, path: '/dashboard' },
+    { name: 'Resources',        icon: <Server size={18} />,          path: '/resources' },
+    { name: 'Cost Optimization',icon: <PiggyBank size={18} />,       path: '/cost-optimization' },
+    { name: 'Security',         icon: <Shield size={18} />,          path: '/security' },
+    { name: 'Forecast',         icon: <LineChart size={18} />,       path: '/forecast' },
+    { name: 'Simulator',        icon: <Sliders size={18} />,         path: '/simulator' },
+    { name: 'Resource Map',     icon: <Network size={18} />,         path: '/map' },
+    { name: 'AI Assistant',     icon: <Sparkles size={18} />,        path: '/assistant' },
+    { name: 'Roadmap',          icon: <Map size={18} />,             path: '/roadmap' },
   ];
 
   const bottomLinks = [
@@ -59,6 +58,11 @@ const Sidebar = () => {
       </div>
 
       <div className="sidebar-footer">
+        {/* Theme Gliding Switch */}
+        <div className="sidebar-theme-row">
+          <ThemeToggle showLabel={true} />
+        </div>
+
         <nav className="sidebar-nav">
           {bottomLinks.map((link) => (
             <NavLink 

@@ -1,0 +1,345 @@
+{
+  "accountName": "Apex Global FinTech — AWS Production",
+  "cloudProvider": "AWS",
+  "environment": "Production-Cluster-Alpha",
+  "scanTimestamp": "2026-10-09T10:45:00Z",
+  "summary": {
+    "cloudHealthScore": 58,
+    "monthlyCost": 214800,
+    "potentialSavings": 64200,
+    "securityIssues": 8,
+    "activeResources": 12
+  },
+  "resources": [
+    {
+      "id": "i-09f1a23e87b64c10a",
+      "name": "core-transaction-gateway-01",
+      "type": "EC2",
+      "instanceType": "c5.4xlarge",
+      "region": "ap-south-1",
+      "status": "Running",
+      "cpuUtilization": 74,
+      "memoryUtilization": 81,
+      "monthlyCost": 34500,
+      "risk": "Low"
+    },
+    {
+      "id": "i-08a7b65c43d21e09f",
+      "name": "legacy-risk-scoring-worker",
+      "type": "EC2",
+      "instanceType": "m5.2xlarge",
+      "region": "ap-south-1",
+      "status": "Running",
+      "cpuUtilization": 12,
+      "memoryUtilization": 22,
+      "monthlyCost": 19800,
+      "risk": "High"
+    },
+    {
+      "id": "i-03b2c1d0e9f8a7b65",
+      "name": "notification-dispatcher-staging",
+      "type": "EC2",
+      "instanceType": "t3.xlarge",
+      "region": "ap-south-1",
+      "status": "Running",
+      "cpuUtilization": 9,
+      "memoryUtilization": 18,
+      "monthlyCost": 8200,
+      "risk": "High"
+    },
+    {
+      "id": "i-07c6b5a4d3e2f1098",
+      "name": "archived-etl-scheduler-dead",
+      "type": "EC2",
+      "instanceType": "m5.xlarge",
+      "region": "us-east-1",
+      "status": "Stopped",
+      "cpuUtilization": 0,
+      "memoryUtilization": 0,
+      "monthlyCost": 4100,
+      "risk": "Medium"
+    },
+    {
+      "id": "rds-aurora-postgres-primary",
+      "name": "apex-core-banking-db-cluster",
+      "type": "RDS",
+      "instanceType": "db.r6g.2xlarge",
+      "region": "ap-south-1",
+      "status": "Available",
+      "cpuUtilization": 58,
+      "storageGB": 1800,
+      "monthlyCost": 52600,
+      "risk": "Low"
+    },
+    {
+      "id": "rds-read-replica-reporting",
+      "name": "apex-analytics-read-replica",
+      "type": "RDS",
+      "instanceType": "db.r5.xlarge",
+      "region": "ap-south-1",
+      "status": "Available",
+      "cpuUtilization": 18,
+      "storageGB": 1200,
+      "monthlyCost": 26400,
+      "risk": "Medium"
+    },
+    {
+      "id": "s3-kyc-customer-audit-vault",
+      "name": "apex-kyc-compliance-documents",
+      "type": "S3",
+      "region": "ap-south-1",
+      "status": "Active",
+      "storageGB": 14200,
+      "monthlyCost": 28400,
+      "publicAccess": true,
+      "risk": "Critical"
+    },
+    {
+      "id": "s3-static-frontend-assets",
+      "name": "apex-portal-cdn-origin",
+      "type": "S3",
+      "region": "ap-south-1",
+      "status": "Active",
+      "storageGB": 850,
+      "monthlyCost": 1900,
+      "publicAccess": false,
+      "risk": "Low"
+    },
+    {
+      "id": "s3-unencrypted-temp-reports",
+      "name": "apex-nightly-csv-reports-temp",
+      "type": "S3",
+      "region": "us-east-1",
+      "status": "Active",
+      "storageGB": 3400,
+      "monthlyCost": 6800,
+      "publicAccess": false,
+      "risk": "High"
+    },
+    {
+      "id": "lambda-payment-auth-hook",
+      "name": "apex-jwt-webhook-authorizer",
+      "type": "Lambda",
+      "region": "ap-south-1",
+      "status": "Active",
+      "invocations": 345000,
+      "monthlyCost": 1200,
+      "risk": "Low"
+    },
+    {
+      "id": "lambda-fraud-detection-stream",
+      "name": "apex-realtime-fraud-evaluator",
+      "type": "Lambda",
+      "region": "ap-south-1",
+      "status": "Active",
+      "invocations": 189000,
+      "monthlyCost": 2800,
+      "risk": "Medium"
+    },
+    {
+      "id": "alb-fintech-traffic-director",
+      "name": "apex-prod-internet-facing-alb",
+      "type": "Other",
+      "region": "ap-south-1",
+      "status": "Active",
+      "monthlyCost": 25100,
+      "risk": "Low"
+    }
+  ],
+  "costBreakdown": {
+    "EC2": 66600,
+    "RDS": 79000,
+    "S3": 37100,
+    "Lambda": 4000,
+    "Other": 28100
+  },
+  "costTrend": [
+    { "month": "Jan", "cost": 142000 },
+    { "month": "Feb", "cost": 158000 },
+    { "month": "Mar", "cost": 169000 },
+    { "month": "Apr", "cost": 182000 },
+    { "month": "May", "cost": 195000 },
+    { "month": "Jun", "cost": 204000 },
+    { "month": "Jul", "cost": 214800 }
+  ],
+  "securityFindings": [
+    {
+      "id": "SEC-APEX-001",
+      "title": "Publicly Exposed Sensitive KYC S3 Bucket",
+      "resource": "apex-kyc-compliance-documents",
+      "severity": "Critical",
+      "category": "Data Exposure",
+      "description": "Bucket 'apex-kyc-compliance-documents' containing 14.2 TB has S3 Block Public Access DISABLED and wildcard GET permission allowed.",
+      "recommendation": "Immediately enable S3 Block Public Access and verify IAM KMS customer managed keys."
+    },
+    {
+      "id": "SEC-APEX-002",
+      "title": "Unencrypted Storage Volume on Primary Banking RDS",
+      "resource": "apex-core-banking-db-cluster",
+      "severity": "Critical",
+      "category": "Encryption at Rest",
+      "description": "Primary PostgreSQL cluster database storage volume is operating without AWS KMS encryption enabled.",
+      "recommendation": "Take DB snapshot, copy with aws/rds KMS encryption key, and restore cluster to encrypted storage."
+    },
+    {
+      "id": "SEC-APEX-003",
+      "title": "Unrestricted Security Group SSH Port 22 Open (0.0.0.0/0)",
+      "resource": "legacy-risk-scoring-worker",
+      "severity": "Critical",
+      "category": "Network Ingress",
+      "description": "Security Group sg-0a7c491e attached to worker instance allows inbound SSH on port 22 from the entire public internet.",
+      "recommendation": "Revoke rule 0.0.0.0/0 and restrict SSH to authorized Corporate VPN CIDR."
+    },
+    {
+      "id": "SEC-APEX-004",
+      "title": "Missing S3 Server-Side Encryption (SSE-KMS)",
+      "resource": "apex-nightly-csv-reports-temp",
+      "severity": "High",
+      "category": "Data Compliance",
+      "description": "Bucket objects are written with default unmanaged plaintext storage configuration.",
+      "recommendation": "Enforce default aws:kms bucket encryption policy for all PUT requests."
+    },
+    {
+      "id": "SEC-APEX-005",
+      "title": "Root IAM Account Access Keys Active & Unrotated",
+      "resource": "AWS Account Root Credential",
+      "severity": "High",
+      "category": "IAM Governance",
+      "description": "Root account access keys exist and were last rotated 312 days ago (policy requires 90 days).",
+      "recommendation": "Delete root access keys and enforce Hardware MFA on root account."
+    },
+    {
+      "id": "SEC-APEX-006",
+      "title": "Overprovisioned EC2 Instance Incurring Excessive Waste",
+      "resource": "legacy-risk-scoring-worker",
+      "severity": "Medium",
+      "category": "Resource Waste",
+      "description": "Instance m5.2xlarge has 14-day average CPU of 12% and memory of 22%.",
+      "recommendation": "Downsize to t3.xlarge or m5.large to immediately recover ₹11,400/month."
+    },
+    {
+      "id": "SEC-APEX-007",
+      "title": "Unused Stopped EC2 Instance Accumulating EBS Costs",
+      "resource": "archived-etl-scheduler-dead",
+      "severity": "Medium",
+      "category": "Zombie Assets",
+      "description": "Instance has been stopped for 48 consecutive days with 800 GB provisioned gp3 volume attached.",
+      "recommendation": "Create final AMI snapshot and terminate stopped instance."
+    },
+    {
+      "id": "SEC-APEX-008",
+      "title": "Underutilized RDS Read Replica",
+      "resource": "apex-analytics-read-replica",
+      "severity": "Low",
+      "category": "Capacity Sizing",
+      "description": "Read replica db.r5.xlarge shows less than 15 IOPS and 18% CPU.",
+      "recommendation": "Switch to db.t3.large or enable Aurora Serverless v2 scaling."
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "REC-APEX-001",
+      "title": "Downsize Over-provisioned Risk Scoring Worker",
+      "service": "EC2",
+      "currentCost": 19800,
+      "projectedCost": 8400,
+      "estimatedSavings": 11400,
+      "action": "Downsize m5.2xlarge to t3.xlarge",
+      "effort": "Low",
+      "risk": "Low"
+    },
+    {
+      "id": "REC-APEX-002",
+      "title": "Convert Core Banking RDS to 1-Year Reserved Instance",
+      "service": "RDS",
+      "currentCost": 52600,
+      "projectedCost": 33100,
+      "estimatedSavings": 19500,
+      "action": "Purchase 1-Year All-Upfront RI for db.r6g.2xlarge",
+      "effort": "Low",
+      "risk": "Low"
+    },
+    {
+      "id": "REC-APEX-003",
+      "title": "Enable S3 Intelligent-Tiering on KYC Audit Vault",
+      "service": "S3",
+      "currentCost": 28400,
+      "projectedCost": 16200,
+      "estimatedSavings": 12200,
+      "action": "Apply Intelligent-Tiering lifecycle rule for objects older than 30 days",
+      "effort": "Quick Fix",
+      "risk": "None"
+    },
+    {
+      "id": "REC-APEX-004",
+      "title": "Downsize Analytics Read Replica to db.t3.large",
+      "service": "RDS",
+      "currentCost": 26400,
+      "projectedCost": 13200,
+      "estimatedSavings": 13200,
+      "action": "Modify instance class from db.r5.xlarge to db.t3.large",
+      "effort": "Medium",
+      "risk": "Low"
+    },
+    {
+      "id": "REC-APEX-005",
+      "title": "Decommission Zombie Staging EC2 Instance & Dead EBS",
+      "service": "EC2",
+      "currentCost": 12300,
+      "projectedCost": 4400,
+      "estimatedSavings": 7900,
+      "action": "Terminate stopped instance and snapshot attached storage",
+      "effort": "Quick Fix",
+      "risk": "Low"
+    }
+  ],
+  "resourceUtilization": [
+    { "name": "core-transaction-gateway-01", "type": "EC2", "cpu": 74, "memory": 81, "status": "Optimized" },
+    { "name": "legacy-risk-scoring-worker", "type": "EC2", "cpu": 12, "memory": 22, "status": "Underutilized" },
+    { "name": "notification-dispatcher-staging", "type": "EC2", "cpu": 9, "memory": 18, "status": "Underutilized" },
+    { "name": "apex-core-banking-db-cluster", "type": "RDS", "cpu": 58, "memory": 64, "status": "Optimized" },
+    { "name": "apex-analytics-read-replica", "type": "RDS", "cpu": 18, "memory": 24, "status": "Underutilized" }
+  ],
+  "forecast": [
+    { "date": "1 Oct", "actual": 198000, "predicted": null },
+    { "date": "5 Oct", "actual": 204000, "predicted": null },
+    { "date": " Today", "actual": 214800, "predicted": 214800 },
+    { "date": "15 Oct", "actual": null, "predicted": 224000 },
+    { "date": "20 Oct", "actual": null, "predicted": 236000 },
+    { "date": "31 Oct", "actual": null, "predicted": 248000 }
+  ],
+  "roadmap": [
+    {
+      "step": 1,
+      "title": "Immediate Security Remediation",
+      "priority": "Critical",
+      "issue": "Public S3 KYC Vault & Open SSH 22",
+      "action": "Enable S3 Block Public Access & close port 22",
+      "impact": "Eliminates high-profile exposure"
+    },
+    {
+      "step": 2,
+      "title": "Downsize 2 Idle EC2 Workers",
+      "priority": "High",
+      "issue": "Risk Worker (12% CPU) & Staging Dispatcher (9% CPU)",
+      "action": "Switch to t3 instances via CloudPilot 1-Click action",
+      "estimatedSavings": 19300
+    },
+    {
+      "step": 3,
+      "title": "Commit 1-Year RDS Reserved Instance",
+      "priority": "High",
+      "issue": "On-demand primary database billing",
+      "action": "Reserve db.r6g.2xlarge in ap-south-1",
+      "estimatedSavings": 19500
+    },
+    {
+      "step": 4,
+      "title": "Automate S3 Intelligent Tiering",
+      "priority": "Medium",
+      "issue": "14.2 TB cold document accumulation",
+      "action": "Deploy S3 Lifecycle archive policy",
+      "estimatedSavings": 12200
+    }
+  ]
+}

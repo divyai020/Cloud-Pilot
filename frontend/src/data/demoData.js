@@ -1,9 +1,10 @@
-const demoData = {
+const defaultDemoData = {
     summary: {
         cloudHealthScore: 72,
         monthlyCost: 48500,
         potentialSavings: 12800,
         securityIssues: 5,
+        activeResources: 5,
     },
 
     resources: [
@@ -81,6 +82,7 @@ const demoData = {
         { month: "Apr", cost: 37000 },
         { month: "May", cost: 41000 },
         { month: "Jun", cost: 48500 },
+        { month: "Jul", cost: 49200 },
     ],
 
     securityFindings: [
@@ -89,6 +91,7 @@ const demoData = {
             title: "Publicly exposed S3 bucket",
             resource: "customer-data-backup",
             severity: "Critical",
+            category: "Public Resources",
             description: "Bucket allows public access.",
             recommendation: "Block public access and review bucket policy.",
         },
@@ -97,6 +100,7 @@ const demoData = {
             title: "Inactive IAM access keys",
             resource: "3 IAM users",
             severity: "High",
+            category: "IAM",
             description: "Access keys have not been used for more than 90 days.",
             recommendation: "Disable or rotate unused access keys.",
         },
@@ -105,6 +109,7 @@ const demoData = {
             title: "Open security group rule",
             resource: "sg-web-tier",
             severity: "High",
+            category: "Network",
             description: "Port 22 is open to a broad IP range.",
             recommendation: "Restrict SSH access to trusted IP ranges.",
         },
@@ -113,6 +118,7 @@ const demoData = {
             title: "Unencrypted storage",
             resource: "analytics-db",
             severity: "Medium",
+            category: "Data Protection",
             description: "Encryption at rest is not enabled.",
             recommendation: "Enable encryption for database storage.",
         },
@@ -121,6 +127,7 @@ const demoData = {
             title: "Old IAM credentials",
             resource: "developer-user",
             severity: "Medium",
+            category: "IAM",
             description: "Credentials have not been rotated recently.",
             recommendation: "Rotate credentials according to policy.",
         },
@@ -262,5 +269,191 @@ const demoData = {
         },
     ],
 };
+
+/**
+ * Normalizes uploaded JSON data ensuring all dashboards and visualizers render cleanly.
+ */
+export const normalizeCloudData = (raw, fileName = 'custom_cloud_data.json') => {
+    if (!raw || typeof raw !== 'object') return defaultDemoData;
+
+    const resources = Array.isArray(raw.resources) ? raw.resources : defaultDemoData.resources;
+    const recommendations = Array.isArray(raw.recommendations) ? raw.recommendations : defaultDemoData.recommendations;
+    const securityFindings = Array.isArray(raw.securityFindings) ? raw.securityFindings : defaultDemoData.securityFindings;
+
+    // Calculate total cost from resources if not explicitly given
+    const calculatedMonthlyCost = resources.reduce((acc, r) => acc + (Number(r.monthlyCost) || 0), 0);
+    const monthlyCost = Number(raw.summary?.monthlyCost) || (calculatedMonthlyCost > 0 ? calculatedMonthlyCost : defaultDemoData.summary.monthlyCost);
+
+    // Calculate potential savings
+    const calculatedSavings = recommendations.reduce((acc, r) => acc + (Number(r.estimatedSavings) || 0), 0);
+    const potentialSavings = Number(raw.summary?.potentialSavings) || (calculatedSavings > 0 ? calculatedSavings : defaultDemoData.summary.potentialSavings);
+
+    // Calculate health score if missing
+    let cloudHealthScore = Number(raw.summary?.cloudHealthScore);
+    if (!cloudHealthScore) {
+        const crit = securityFindings.filter(f => f.severity === 'Critical').length;
+        const high = securityFindings.filter(f => f.severity === 'High').length;
+        cloudHealthScore = Math.max(35, Math.min(95, 100 - (crit * 9 + high * 4)));
+    }
+
+    const summary = {
+        cloudHealthScore,
+        monthlyCost,
+        potentialSavings,
+        securityIssues: securityFindings.length,
+        activeResources: resources.length,
+        ...(raw.summary || {})
+    };
+
+    // Calculate or preserve cost breakdown
+    let costBreakdown = raw.costBreakdown;
+    if (!costBreakdown) {
+        const breakdown = { EC2: 0, RDS: 0, S3: 0, Lambda: 0, Other: 0 };
+        resources.forEach(r => {
+            const t = (r.type || 'Other').toUpperCase();
+            const cost = Number(r.monthlyCost) || 0;
+            if (t.includes('EC2')) breakdown.EC2 += cost;
+            else if (t.includes('RDS')) breakdown.RDS += cost;
+            else if (t.includes('S3')) breakdown.S3 += cost;
+            else if (t.includes('LAMBDA')) breakdown.Lambda += cost;
+            else breakdown.Other += cost;
+        });
+        costBreakdown = breakdown;
+    }
+
+    // Cost trend fallback
+    let costTrend = Array.isArray(raw.costTrend) ? raw.costTrend : null;
+    if (!costTrend || costTrend.length === 0) {
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"];
+        costTrend = months.map((m, idx) => {
+            const factor = 0.65 + (idx * 0.058);
+            return {
+                month: m,
+                cost: Math.round(monthlyCost * factor)
+            };
+        });
+        costTrend[costTrend.length - 1].cost = monthlyCost;
+    }
+
+    // Resource utilization fallback
+    const resourceUtilization = Array.isArray(raw.resourceUtilization) 
+        ? raw.resourceUtilization 
+        : defaultDemoData.resourceUtilization;
+
+    // Forecast fallback
+    let forecast = Array.isArray(raw.forecast) ? raw.forecast : null;
+    if (!forecast) {
+        forecast = [
+            { date: "Jul 1", actual: Math.round(monthlyCost * 0.76), predicted: null },
+            { date: "Jul 8", actual: Math.round(monthlyCost * 0.82), predicted: null },
+            { date: "Jul 15", actual: Math.round(monthlyCost * 0.88), predicted: null },
+            { date: "Jul 22", actual: Math.round(monthlyCost * 0.94), predicted: null },
+            { date: "Today", actual: monthlyCost, predicted: monthlyCost },
+            { date: "Jul 29", actual: null, predicted: Math.round(monthlyCost * 1.05) },
+            { date: "Aug 5", actual: null, predicted: Math.round(monthlyCost * 1.11) },
+            { date: "Aug 12", actual: null, predicted: Math.round(monthlyCost * 1.16) },
+        ];
+    }
+
+    const simulator = raw.simulator || defaultDemoData.simulator;
+    const roadmap = Array.isArray(raw.roadmap) ? raw.roadmap : defaultDemoData.roadmap;
+
+    return {
+        accountName: raw.accountName || "Uploaded Cloud Environment",
+        cloudProvider: raw.cloudProvider || "AWS",
+        environment: raw.environment || "Production",
+        fileName,
+        summary,
+        resources,
+        costBreakdown,
+        costTrend,
+        securityFindings,
+        recommendations,
+        resourceUtilization,
+        forecast,
+        simulator,
+        roadmap,
+    };
+};
+
+/**
+ * Returns the currently active cloud dataset (either uploaded JSON or preloaded demo).
+ */
+export const getActiveCloudData = () => {
+    try {
+        const source = localStorage.getItem('cloudpilot_data_source');
+        if (source === 'uploaded') {
+            const stored = localStorage.getItem('cloudpilot_active_data');
+            if (stored) {
+                return JSON.parse(stored);
+            }
+        }
+    } catch (e) {
+        console.warn("Could not read active cloud data from storage:", e);
+    }
+    return defaultDemoData;
+};
+
+/**
+ * Sets uploaded JSON as active cloud dataset and persists to localStorage.
+ */
+export const setUploadedCloudData = (customData, fileName = 'custom_cloud_data.json') => {
+    const normalized = normalizeCloudData(customData, fileName);
+    try {
+        localStorage.setItem('cloudpilot_active_data', JSON.stringify(normalized));
+        localStorage.setItem('cloudpilot_data_source', 'uploaded');
+        localStorage.setItem('cloudpilot_source_filename', fileName);
+        if (normalized.accountName) {
+            localStorage.setItem('cloudpilot_source_account_name', normalized.accountName);
+        }
+    } catch (e) {
+        console.error("Failed to persist uploaded cloud data:", e);
+    }
+    return normalized;
+};
+
+/**
+ * Resets active dataset back to preloaded Demo data.
+ */
+export const resetToDemoData = () => {
+    try {
+        localStorage.removeItem('cloudpilot_active_data');
+        localStorage.setItem('cloudpilot_data_source', 'demo');
+        localStorage.removeItem('cloudpilot_source_filename');
+        localStorage.removeItem('cloudpilot_source_account_name');
+    } catch (e) {
+        console.error("Failed to reset demo data:", e);
+    }
+    return defaultDemoData;
+};
+
+/**
+ * Returns metadata about the current cloud data source.
+ */
+export const getCloudDataSourceInfo = () => {
+    const source = localStorage.getItem('cloudpilot_data_source') || 'demo';
+    const isUploaded = source === 'uploaded';
+    const fileName = localStorage.getItem('cloudpilot_source_filename') || (isUploaded ? 'custom_cloud_data.json' : 'Preloaded AWS Demo');
+    const accountName = localStorage.getItem('cloudpilot_source_account_name') || (isUploaded ? 'Uploaded Custom Cloud' : 'Production AWS Account');
+    return {
+        source,
+        isUploaded,
+        fileName,
+        accountName
+    };
+};
+
+export const getDefaultDemoData = () => JSON.parse(JSON.stringify(defaultDemoData));
+
+// Dynamic Proxy for backward compatibility with existing imports
+const demoData = new Proxy(defaultDemoData, {
+    get(target, prop) {
+        const active = getActiveCloudData();
+        if (prop in active) {
+            return active[prop];
+        }
+        return target[prop];
+    }
+});
 
 export default demoData;
