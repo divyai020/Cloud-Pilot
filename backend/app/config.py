@@ -14,10 +14,10 @@ class Settings(BaseSettings):
     JWT_EXPIRE_MINUTES: int = 60
 
     # LLM Service Settings (Phase 11C)
-    LLM_PROVIDER: str = "openai"  # 'openai', 'gemini', 'mock'
-    LLM_MODEL: str = "gpt-3.5-turbo"
+    LLM_PROVIDER: str = "gemini"  # 'openai', 'gemini', 'mock'
+    LLM_MODEL: str = "gemini-2.5-flash"
     LLM_API_KEY: str = ""
-    LLM_TIMEOUT: int = 10
+    LLM_TIMEOUT: int = 30
 
     @property
     def cors_origins(self) -> list[str]:

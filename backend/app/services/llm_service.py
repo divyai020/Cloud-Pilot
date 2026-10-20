@@ -129,7 +129,10 @@ def generate_answer(
                         ],
                         "generationConfig": {
                             "temperature": 0.3,
-                            "maxOutputTokens": 800
+                            "maxOutputTokens": 800,
+                            "thinkingConfig": {
+                                "thinkingBudget": 0
+                            }
                         }
                     }
 
