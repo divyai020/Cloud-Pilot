@@ -21,10 +21,12 @@ import {
   Mail,
   MessageSquare
 } from 'lucide-react';
+import { getDiscordWebhook, setDiscordWebhook, sendDiscordAlert } from '../services/alertService';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general');
   const [isSaving, setIsSaving] = useState(false);
+  const [isTestingDiscord, setIsTestingDiscord] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
   // Form states
@@ -38,6 +40,8 @@ const Settings = () => {
 
   const [notifications, setNotifications] = useState({
     emailAlerts: true,
+    discordWebhook: getDiscordWebhook(),
+    discordEnabled: true,
     slackWebhook: 'https://hooks.slack.com/services/T00/B00/XXXXXX',
     slackEnabled: true,
     criticalOnly: false,
@@ -67,10 +71,24 @@ const Settings = () => {
 
   const handleSave = () => {
     setIsSaving(true);
+    setDiscordWebhook(notifications.discordWebhook);
     setTimeout(() => {
       setIsSaving(false);
       triggerToast('Settings updated successfully!');
     }, 800);
+  };
+
+  const handleTestDiscord = async () => {
+    setIsTestingDiscord(true);
+    try {
+      await sendDiscordAlert();
+      triggerToast('✅ Live test incident delivered to Discord channel!');
+    } catch (err) {
+      console.error('Discord test failed:', err);
+      triggerToast(`❌ Delivery failed: ${err.message}`);
+    } finally {
+      setIsTestingDiscord(false);
+    }
   };
 
   const toggleAccountStatus = (id) => {
@@ -350,6 +368,54 @@ const Settings = () => {
             </div>
 
             <div className="settings-card">
+              <h3 className="settings-card-title">
+                <Bell size={18} style={{ verticalAlign: 'middle', marginRight: 6, color: '#5865F2' }} /> 
+                Discord DevOps Incident Channel
+              </h3>
+              <p className="settings-card-desc">Dispatch automated security violation cards & cost leak alerts directly into your Discord channel.</p>
+
+              <div className="settings-toggle-row">
+                <div>
+                  <div className="toggle-title">Discord Webhook Ingestion</div>
+                  <div className="toggle-sub">Post formatted alert cards with vulnerability details and 1-click remediation commands.</div>
+                </div>
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={notifications.discordEnabled}
+                    onChange={(e) => setNotifications({ ...notifications, discordEnabled: e.target.checked })}
+                  />
+                  <span className="slider round"></span>
+                </label>
+              </div>
+
+              <div className="settings-field-group">
+                <label className="settings-label">Discord Incoming Webhook URL</label>
+                <input 
+                  type="text" 
+                  className="settings-input"
+                  style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}
+                  value={notifications.discordWebhook}
+                  placeholder="https://discord.com/api/webhooks/..."
+                  onChange={(e) => setNotifications({ ...notifications, discordWebhook: e.target.value })}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+                <button 
+                  type="button"
+                  className="settings-btn-primary" 
+                  disabled={isTestingDiscord || !notifications.discordWebhook}
+                  onClick={handleTestDiscord}
+                  style={{ background: '#5865F2', borderColor: '#5865F2' }}
+                >
+                  <Bell size={14} style={{ marginRight: 6 }} />
+                  {isTestingDiscord ? 'Sending to Discord...' : 'Send Live Test Discord Alert'}
+                </button>
+              </div>
+            </div>
+
+            <div className="settings-card">
               <h3 className="settings-card-title"><MessageSquare size={18} style={{ verticalAlign: 'middle', marginRight: 6 }} /> Slack Integration</h3>
               <p className="settings-card-desc">Send real-time alerts directly into your DevOps Slack channels.</p>
 
@@ -379,6 +445,7 @@ const Settings = () => {
               </div>
 
               <button 
+                type="button"
                 className="settings-btn-outline" 
                 style={{ marginTop: '0.5rem' }}
                 onClick={() => triggerToast('Slack test alert sent to #cloud-alerts channel!')}

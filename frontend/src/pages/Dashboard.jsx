@@ -23,6 +23,8 @@ import {
   getSecuritySummary 
 } from '../services/dashboardService';
 import { exportExecutiveReportPDF } from '../services/pdfExportService';
+import { sendDiscordAlert } from '../services/alertService';
+import { CheckCircle2 } from 'lucide-react';
 
 const Dashboard = () => {
   const [chartPeriod, setChartPeriod] = useState('Monthly');
@@ -32,6 +34,8 @@ const Dashboard = () => {
   const [securityFindings, setSecurityFindings] = useState(demoData.securityFindings);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSendingAlert, setIsSendingAlert] = useState(false);
+  const [alertStatus, setAlertStatus] = useState(null);
   const resourceUtilization = demoData.resourceUtilization;
 
   const handleExportPDF = () => {
@@ -48,6 +52,29 @@ const Dashboard = () => {
       console.error('PDF generation failed:', err);
     } finally {
       setTimeout(() => setIsExporting(false), 800);
+    }
+  };
+
+  const handleSendDiscordAlert = async () => {
+    setIsSendingAlert(true);
+    setAlertStatus(null);
+    try {
+      await sendDiscordAlert({
+        accountName: 'FinTech Enterprise Production Cloud',
+        cloudProvider: 'AWS (ap-south-1 Mumbai)',
+        healthScore: summary?.cloudHealthScore ?? 61,
+        monthlyCost: Number(summary?.monthlyCost) || 115400,
+        potentialSavings: Number(summary?.potentialSavings) || 32800,
+        securityIssues: summary?.securityIssues ?? 7,
+      });
+      setAlertStatus({ type: 'success', message: 'Live incident alert delivered to your Discord channel!' });
+      setTimeout(() => setAlertStatus(null), 4500);
+    } catch (err) {
+      console.error('Discord dispatch failed:', err);
+      setAlertStatus({ type: 'error', message: err.message || 'Failed to dispatch alert to Discord' });
+      setTimeout(() => setAlertStatus(null), 4500);
+    } finally {
+      setIsSendingAlert(false);
     }
   };
 
@@ -125,6 +152,23 @@ const Dashboard = () => {
             <p className="dashboard-subtitle">An intelligent overview of your cloud environment.</p>
           </div>
           <div className="header-actions">
+            <button 
+              className="btn-secondary-sm" 
+              onClick={handleSendDiscordAlert} 
+              disabled={isSendingAlert}
+              title="Dispatch live incident notification to Discord channel"
+              style={{ 
+                borderColor: 'rgba(88, 101, 242, 0.4)', 
+                background: 'rgba(88, 101, 242, 0.08)',
+                color: '#c7d2fe'
+              }}
+            >
+              {isSendingAlert ? (
+                <><Loader2 size={16} className="mr-2 spin-icon" /> Sending to Discord...</>
+              ) : (
+                <><Bell size={16} className="mr-2" color="#5865F2" /> Dispatch Discord Alert</>
+              )}
+            </button>
             <button className="btn-secondary-sm" onClick={handleExportPDF} disabled={isExporting}>
               {isExporting ? (
                 <><Loader2 size={16} className="mr-2 spin-icon" /> Generating PDF...</>
@@ -141,6 +185,27 @@ const Dashboard = () => {
             </button>
           </div>
         </header>
+
+        {alertStatus && (
+          <div 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              padding: '0.75rem 1rem',
+              borderRadius: '8px',
+              marginBottom: '1.25rem',
+              fontSize: '0.88rem',
+              background: alertStatus.type === 'success' ? 'rgba(88, 101, 242, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+              border: `1px solid ${alertStatus.type === 'success' ? 'rgba(88, 101, 242, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
+              color: alertStatus.type === 'success' ? '#a5b4fc' : '#f87171',
+              animation: 'fadeIn 0.2s ease-in-out'
+            }}
+          >
+            <CheckCircle2 size={16} color={alertStatus.type === 'success' ? '#818cf8' : '#ef4444'} />
+            <span style={{ fontWeight: 500 }}>{alertStatus.message}</span>
+          </div>
+        )}
 
         {/* KPI Cards */}
         <div className="kpi-grid">
