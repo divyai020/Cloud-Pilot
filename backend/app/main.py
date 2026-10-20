@@ -17,12 +17,6 @@ from app.routers import (
 from app.database import check_db_connection, engine, Base
 import app.models  # Load all models for metadata creation
 
-# Automatically create tables in PostgreSQL on startup
-try:
-    Base.metadata.create_all(bind=engine)
-except Exception:
-    pass
-
 # Initialize FastAPI Application
 app = FastAPI(
     title="Cloud Pilot API",
@@ -51,6 +45,14 @@ app.include_router(reports_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
 app.include_router(assistant_router, prefix="/api/v1")
 app.include_router(simulator_router, prefix="/api/v1")
+
+@app.on_event("startup")
+def startup_event():
+    """Ensure database tables exist on application startup."""
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception:
+        pass
 
 @app.get("/")
 def read_root():

@@ -9,10 +9,11 @@ if db_url.startswith("postgres://"):
 elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
     db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-# Create SQLAlchemy Database Engine
+# Create SQLAlchemy Database Engine with connect timeout to prevent hangs
 engine = create_engine(
     db_url,
     pool_pre_ping=True,  # Automatically tests connection health before executing queries
+    connect_args={"connect_timeout": 5},
 )
 
 # Session factory for Database operations
