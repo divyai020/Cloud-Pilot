@@ -14,6 +14,15 @@ from app.routers import (
     simulator_router
 )
 
+from app.database import check_db_connection, engine, Base
+import app.models  # Load all models for metadata creation
+
+# Automatically create tables in PostgreSQL on startup
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception:
+    pass
+
 # Initialize FastAPI Application
 app = FastAPI(
     title="Cloud Pilot API",
